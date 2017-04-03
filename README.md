@@ -9,7 +9,7 @@ Install
 -------
 
 ```bash
-  npm install --save loopback-softdelete-mixin2
+  npm install --save loopback-softdelete-mixin3
 ```
 
 SERVER CONFIG
@@ -28,7 +28,7 @@ Add the `mixins` property to your `server/model-config.json`:
     ],
     "mixins": [
       "loopback/common/mixins",
-      "../node_modules/loopback-softdelete-mixin2",
+      "../node_modules/loopback-softdelete-mixin3",
       "../common/mixins"
     ]
   }
