@@ -63,10 +63,21 @@ There are a number of configurable options to the mixin. You can specify an alte
       "scrub": true,
       "index": true
     },
+  ...
+  "list_user_index": {
+      "keys": {
+        "userId": 1,
+        "listId": -1,
+        "deleteIndex": true
+      },
+      "options": {
+        "unique": true 
+      } 
+    }
   },
 ```
 
-If "index" is set to true, an additional property called `deleteIndex` will be configured which will default to 0 and be set to a unix time integer at the time of delete. This is to provide indexing support for the following scenario.
+If "index" is set to true, an additional property called `deleteIndex` will be configured and set to a random string at the time of delete. This is to provide indexing support for the following scenario.
 
 A GroupMembership model which has a `userId` and `groupId` relation to User, and Group models with unique indexing configured to prevent duplicate relations between users and groups. Without the "index" option enabled, soft delete will break this kind of indexing and allow duplicate memberships. 
 

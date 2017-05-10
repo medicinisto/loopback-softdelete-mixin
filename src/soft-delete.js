@@ -1,3 +1,5 @@
+var crypto = require('crypto');
+
 import _debug from './debug';
 const debug = _debug();
 
@@ -20,10 +22,10 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false}
   }
 
   Model.defineProperty(deletedAt, {type: Date, required: false, default: null});
-  if (index) Model.defineProperty('deleteIndex', { type: 'number', required: true, default: 0 });
+  if (index) Model.defineProperty('deleteIndex', { type: String, required: true, default: '' });
 
   Model.destroyAll = function softDestroyAll(where, cb) {
-    var deletePromise = index ? Model.updateAll(where, { ...scrubbed, [deletedAt]: new Date(), deleteIndex: new Date().getTime() }) :
+    var deletePromise = index ? Model.updateAll(where, { ...scrubbed, [deletedAt]: new Date(), deleteIndex: genKey() }) :
       Model.updateAll(where, { ...scrubbed, [deletedAt]: new Date() })
     
     return deletePromise
@@ -35,7 +37,7 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false}
   Model.deleteAll = Model.destroyAll;
 
   Model.destroyById = function softDestroyById(id, cb) {
-    var deletePromise = index ? Model.updateAll({ [idName]: id }, { ...scrubbed, [deletedAt]: new Date(), deleteIndex: new Date().getTime() }) :
+    var deletePromise = index ? Model.updateAll({ [idName]: id }, { ...scrubbed, [deletedAt]: new Date(), deleteIndex: genKey() }) :
       Model.updateAll({ [idName]: id }, { ...scrubbed, [deletedAt]: new Date() });
 
     return deletePromise
@@ -48,7 +50,7 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false}
 
   Model.prototype.destroy = function softDestroy(options, cb) {
     const callback = (cb === undefined && typeof options === 'function') ? options : cb;
-    var deletePromise = index ? this.updateAttributes({ ...scrubbed, [deletedAt]: new Date(), deleteIndex: new Date().getTime() }) :
+    var deletePromise = index ? this.updateAttributes({ ...scrubbed, [deletedAt]: new Date(), deleteIndex: genKey() }) :
       this.updateAttributes({ ...scrubbed, [deletedAt]: new Date() });
     
     return deletePromise
@@ -111,4 +113,8 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false}
     }
     return _update.call(Model, whereNotDeleted, ...rest);
   };
+};
+
+var genKey = function() {
+  return crypto.createHmac('sha256', Math.random().toString(12).substr(2)).digest('hex').substr(0, 8);
 };
