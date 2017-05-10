@@ -24,8 +24,8 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false}
 
   Model.destroyAll = function softDestroyAll(where, cb) {
     var deletePromise = index ? Model.updateAll(where, { ...scrubbed, [deletedAt]: new Date(), deleteIndex: new Date().getTime() }) :
-      Model.updateAll(where, { ...scrubbed, [deletedAt]: new Date() });
-
+      Model.updateAll(where, { ...scrubbed, [deletedAt]: new Date() })
+    
     return deletePromise
       .then(result => (typeof cb === 'function') ? cb(null, result) : result)
       .catch(error => (typeof cb === 'function') ? cb(error) : Promise.reject(error));
@@ -35,8 +35,8 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false}
   Model.deleteAll = Model.destroyAll;
 
   Model.destroyById = function softDestroyById(id, cb) {
-    var deletePromise = index ? Model.updateAll(where, { ...scrubbed, [deletedAt]: new Date(), deleteIndex: new Date().getTime() }) :
-      Model.updateAll(where, { ...scrubbed, [deletedAt]: new Date() });
+    var deletePromise = index ? Model.updateAll({ [idName]: id }, { ...scrubbed, [deletedAt]: new Date(), deleteIndex: new Date().getTime() }) :
+      Model.updateAll({ [idName]: id }, { ...scrubbed, [deletedAt]: new Date() });
 
     return deletePromise
       .then(result => (typeof cb === 'function') ? cb(null, result) : result)
@@ -48,10 +48,9 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false}
 
   Model.prototype.destroy = function softDestroy(options, cb) {
     const callback = (cb === undefined && typeof options === 'function') ? options : cb;
-
-    var deletePromise = index ? Model.updateAll(where, { ...scrubbed, [deletedAt]: new Date(), deleteIndex: new Date().getTime() }) :
-      Model.updateAll(where, { ...scrubbed, [deletedAt]: new Date() });
-
+    var deletePromise = index ? this.updateAttributes({ ...scrubbed, [deletedAt]: new Date(), deleteIndex: new Date().getTime() }) :
+      this.updateAttributes({ ...scrubbed, [deletedAt]: new Date() });
+    
     return deletePromise
       .then(result => (typeof cb === 'function') ? callback(null, result) : result)
       .catch(error => (typeof cb === 'function') ? callback(error) : Promise.reject(error));
