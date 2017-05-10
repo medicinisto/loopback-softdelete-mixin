@@ -22,7 +22,7 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false}
   }
 
   Model.defineProperty(deletedAt, {type: Date, required: false, default: null});
-  if (index) Model.defineProperty('deleteIndex', { type: String, required: true, default: '' });
+  if (index) Model.defineProperty('deleteIndex', { type: String, required: true, default: 'null' });
 
   Model.destroyAll = function softDestroyAll(where, cb) {
     var deletePromise = index ? Model.updateAll(where, { ...scrubbed, [deletedAt]: new Date(), deleteIndex: genKey() }) :

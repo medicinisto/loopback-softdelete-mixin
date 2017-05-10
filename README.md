@@ -81,7 +81,7 @@ If "index" is set to true, an additional property called `deleteIndex` will be c
 
 A GroupMembership model which has a `userId` and `groupId` relation to User, and Group models with unique indexing configured to prevent duplicate relations between users and groups. Without the "index" option enabled, soft delete will break this kind of indexing and allow duplicate memberships. 
 
-NOTE: Enabling "index" does not create the index. This must be done manually in model.json.
+NOTES: Indexing option has only been tested with the MySQL connector. Enabling "index" does not create the index. This must be done manually in model.json.
 
 Retrieving deleted entities
 ---------------------------
