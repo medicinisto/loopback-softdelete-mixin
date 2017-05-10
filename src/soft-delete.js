@@ -19,11 +19,10 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false }) => {
     scrubbed = propertiesToScrub.reduce((obj, prop) => ({ ...obj, [prop]: null }), {});
   }
 
-  Model.defineProperty(deletedAt, {type: Date, required: false, default: null});
-  Model.defineProperty('deleted', { type: Boolean, required: true, default: false });
-  
+  Model.defineProperty(deletedAt, {type: 'any', required: false, default: false});
+
   Model.destroyAll = function softDestroyAll(where, cb) {
-    return Model.updateAll(where, { ...scrubbed, [deletedAt]: new Date(), deleted: true  })
+    return Model.updateAll(where, { ...scrubbed, [deletedAt]: new Date()})
       .then(result => (typeof cb === 'function') ? cb(null, result) : result)
       .catch(error => (typeof cb === 'function') ? cb(error) : Promise.reject(error));
   };
@@ -32,7 +31,7 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false }) => {
   Model.deleteAll = Model.destroyAll;
 
   Model.destroyById = function softDestroyById(id, cb) {
-    return Model.updateAll({ [idName]: id }, { ...scrubbed, [deletedAt]: new Date(), deleted: true })
+    return Model.updateAll({ [idName]: id }, { ...scrubbed, [deletedAt]: new Date() })
       .then(result => (typeof cb === 'function') ? cb(null, result) : result)
       .catch(error => (typeof cb === 'function') ? cb(error) : Promise.reject(error));
   };
@@ -43,7 +42,7 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false }) => {
   Model.prototype.destroy = function softDestroy(options, cb) {
     const callback = (cb === undefined && typeof options === 'function') ? options : cb;
 
-    return this.updateAttributes({ ...scrubbed, [deletedAt]: new Date(), deleted: true  })
+    return this.updateAttributes({ ...scrubbed, [deletedAt]: new Date()})
       .then(result => (typeof cb === 'function') ? callback(null, result) : result)
       .catch(error => (typeof cb === 'function') ? callback(error) : Promise.reject(error));
   };

@@ -3,7 +3,7 @@ SoftDelete
 
 This module is designed for the [Strongloop Loopback](https://github.com/strongloop/loopback) framework. It allows entities of any Model to be "soft deleted" by adding `deletedAt` (Date) and `deleted` boolean attributes. Queries following the standard format will not return these entities; they can only be accessed by adding `{ deleted: true }` to the query object (at the same level as `where`, `include` etc).
 
-This is a fork from [loopback-softdelete-mixin4](https://github.com/mendecinisto/loopback-softdelete-mixin), to which the `deleted` boolean property is added to allow for better indexing against non deleted records.
+This is a fork from [loopback-softdelete-mixin4](https://github.com/mendecinisto/loopback-softdelete-mixin), to which the `deletedAt` property type has been changed to 'any' with default value as `false` to allow fopr indexing capability.
 
 Install
 -------
