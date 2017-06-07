@@ -56,9 +56,11 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false,
       ...scrubbed, 
       [deletedAt]: new Date()
     };
+    options = options || {};
+    options.delete = true;
     if (index) data.deleteIndex = genKey();
-    if (deletedById && option.deletedById) data.deletedById = options.deletedById;
-    if (deleteOp && option.deleteOp) data.deleteOp = options.deleteOp;
+    if (deletedById && options.deletedById) data.deletedById = options.deletedById;
+    if (deleteOp && options.deleteOp) data.deleteOp = options.deleteOp;
 
     var deletePromise = index ? this.updateAttributes({ ...scrubbed, [deletedAt]: new Date(), deleteIndex: genKey() }) :
       this.updateAttributes({ ...scrubbed, [deletedAt]: new Date() }, options);
@@ -123,6 +125,26 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false,
     }
     return _update.call(Model, whereNotDeleted, ...rest);
   };
+
+  if (deletedById || deleteOp) {
+    Model.disableRemoteMethodByName('deleteById');
+
+    Model.remoteMethod('deleteById', {
+      accessType: 'WRITE',
+      isStatic: false,
+      accepts: [
+        { arg: 'options', type: 'object', http: 'optionsFromRequest' }
+      ],
+      returns: {arg: 'data', type: 'object', root: true},
+      http: {verb: 'delete', path: '/'},
+    });
+
+    Model.prototype.deleteById = function(options = {}) {
+      options.deletedById = options.accessToken ? options.accessToken.userId;
+      options.deleteOp = 'user';
+      return this.destroy(options);
+    };
+  }
 };
 
 var genKey = function() {
