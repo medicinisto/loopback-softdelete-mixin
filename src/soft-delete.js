@@ -140,8 +140,8 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false,
     });
 
     Model.prototype.deleteById = function(options = {}) {
-      options.deletedById = options.accessToken ? options.accessToken.userId : null;
-      options.deleteOp = 'user';
+      if (deletedById) options.deletedById = options.accessToken ? options.accessToken.userId : null;
+      if (deleteOp && options.deletedById) options.deleteOp = 'user';
       return this.destroy(options).then(function() {
         return { count: 1 }
       })
