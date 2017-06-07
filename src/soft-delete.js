@@ -126,7 +126,7 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false,
     return _update.call(Model, whereNotDeleted, ...rest);
   };
 
-  if (Model.settings.remoting && Model.settings.remoting.sharedMethods !== false && (deletedById || deleteOp)) {
+  if (Model.settings.remoting && Model.settings.remoting.sharedMethods.deleteById !== false && (deletedById || deleteOp)) {
     Model.disableRemoteMethodByName('deleteById');
 
     Model.remoteMethod('deleteById', {
