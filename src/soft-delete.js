@@ -3,7 +3,7 @@ var crypto = require('crypto');
 import _debug from './debug';
 const debug = _debug();
 
-export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false}) => {
+export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false, deletedById = false, deleteOp = false}) => {
   debug('SoftDelete mixin for Model %s', Model.modelName);
 
   debug('options', { deletedAt, scrub, index });
@@ -23,6 +23,8 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false}
 
   Model.defineProperty(deletedAt, {type: Date, required: false, default: null});
   if (index) Model.defineProperty('deleteIndex', { type: String, required: true, default: 'null' });
+  if (deletedById) Model.defineProperty('deletedById', { type: Number, required: false, default: null });
+  if (deleteOp) Model.defineProperty('deleteOp', { type: String, required: false, default: null });
 
   Model.destroyAll = function softDestroyAll(where, cb) {
     var deletePromise = index ? Model.updateAll(where, { ...scrubbed, [deletedAt]: new Date(), deleteIndex: genKey() }) :
@@ -50,10 +52,18 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false}
 
   Model.prototype.destroy = function softDestroy(options, cb) {
     const callback = (cb === undefined && typeof options === 'function') ? options : cb;
+    let data = {
+      ...scrubbed, 
+      [deletedAt]: new Date()
+    };
+    if (index) data.deleteIndex = genKey();
+    if (deletedById && option.deletedById) data.deletedById = options.deletedById;
+    if (deleteOp && option.deleteOp) data.deleteOp = options.deleteOp;
+
     var deletePromise = index ? this.updateAttributes({ ...scrubbed, [deletedAt]: new Date(), deleteIndex: genKey() }) :
       this.updateAttributes({ ...scrubbed, [deletedAt]: new Date() }, options);
     
-    return deletePromise
+    return this.updateAttributes(data, options)
       .then(result => (typeof cb === 'function') ? callback(null, result) : result)
       .catch(error => (typeof cb === 'function') ? callback(error) : Promise.reject(error));
   };
