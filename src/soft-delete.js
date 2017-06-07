@@ -61,9 +61,6 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false,
     if (index) data.deleteIndex = genKey();
     if (deletedById && options.deletedById) data.deletedById = options.deletedById;
     if (deleteOp && options.deleteOp) data.deleteOp = options.deleteOp;
-
-    var deletePromise = index ? this.updateAttributes({ ...scrubbed, [deletedAt]: new Date(), deleteIndex: genKey() }) :
-      this.updateAttributes({ ...scrubbed, [deletedAt]: new Date() }, options);
     
     return this.updateAttributes(data, options)
       .then(result => (typeof cb === 'function') ? callback(null, result) : result)
