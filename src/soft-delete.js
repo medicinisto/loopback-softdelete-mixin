@@ -51,7 +51,7 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false}
   Model.prototype.destroy = function softDestroy(options, cb) {
     const callback = (cb === undefined && typeof options === 'function') ? options : cb;
     var deletePromise = index ? this.updateAttributes({ ...scrubbed, [deletedAt]: new Date(), deleteIndex: genKey() }) :
-      this.updateAttributes({ ...scrubbed, [deletedAt]: new Date() });
+      this.updateAttributes({ ...scrubbed, [deletedAt]: new Date() }, options);
     
     return deletePromise
       .then(result => (typeof cb === 'function') ? callback(null, result) : result)

@@ -1,6 +1,6 @@
 {
   "name": "loopback-softdelete-mixin4",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A mixin to provide soft deletes by adding a deletedAt attribute for loopback Models",
   "main": "src/index.js",
   "scripts": {
@@ -20,8 +20,8 @@
     "delete"
   ],
   "author": {
-    "name": "Jouke Visser",
-    "email": "jouke@studio-mv.nl"
+    "name": "Joey Benenati",
+    "email": "joey@wedo.com"
   },
   "repository": {
     "type": "git",
