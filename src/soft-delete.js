@@ -1,10 +1,12 @@
+var crypto = require('crypto');
+
 import _debug from './debug';
 const debug = _debug();
 
-export default (Model, { deletedAt = 'deletedAt', scrub = false }) => {
+export default (Model, { deletedAt = 'deletedAt', scrub = false , index = false, deletedById = false, deleteOp = false}) => {
   debug('SoftDelete mixin for Model %s', Model.modelName);
 
-  debug('options', { deletedAt, scrub });
+  debug('options', { deletedAt, scrub, index });
 
   const properties = Model.definition.properties;
   const idName = Model.dataSource.idName(Model.modelName);
@@ -20,9 +22,15 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false }) => {
   }
 
   Model.defineProperty(deletedAt, {type: Date, required: false, default: null});
+  if (index) Model.defineProperty('deleteIndex', { type: String, required: true, default: 'null' });
+  if (deletedById) Model.defineProperty('deletedById', { type: Number, required: false, default: null });
+  if (deleteOp) Model.defineProperty('deleteOp', { type: String, required: false, default: null });
 
   Model.destroyAll = function softDestroyAll(where, cb) {
-    return Model.updateAll(where, { ...scrubbed, [deletedAt]: new Date() })
+    var deletePromise = index ? Model.updateAll(where, { ...scrubbed, [deletedAt]: new Date(), deleteIndex: genKey() }) :
+      Model.updateAll(where, { ...scrubbed, [deletedAt]: new Date() })
+    
+    return deletePromise
       .then(result => (typeof cb === 'function') ? cb(null, result) : result)
       .catch(error => (typeof cb === 'function') ? cb(error) : Promise.reject(error));
   };
@@ -31,7 +39,10 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false }) => {
   Model.deleteAll = Model.destroyAll;
 
   Model.destroyById = function softDestroyById(id, cb) {
-    return Model.updateAll({ [idName]: id }, { ...scrubbed, [deletedAt]: new Date()})
+    var deletePromise = index ? Model.updateAll({ [idName]: id }, { ...scrubbed, [deletedAt]: new Date(), deleteIndex: genKey() }) :
+      Model.updateAll({ [idName]: id }, { ...scrubbed, [deletedAt]: new Date() });
+
+    return deletePromise
       .then(result => (typeof cb === 'function') ? cb(null, result) : result)
       .catch(error => (typeof cb === 'function') ? cb(error) : Promise.reject(error));
   };
@@ -41,8 +52,17 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false }) => {
 
   Model.prototype.destroy = function softDestroy(options, cb) {
     const callback = (cb === undefined && typeof options === 'function') ? options : cb;
-
-    return this.updateAttributes({ ...scrubbed, [deletedAt]: new Date() })
+    let data = {
+      ...scrubbed, 
+      [deletedAt]: new Date()
+    };
+    options = options || {};
+    options.delete = true;
+    if (index) data.deleteIndex = genKey();
+    if (deletedById && options.deletedById) data.deletedById = options.deletedById;
+    if (deleteOp && options.deleteOp) data.deleteOp = options.deleteOp;
+    
+    return this.updateAttributes(data, options)
       .then(result => (typeof cb === 'function') ? callback(null, result) : result)
       .catch(error => (typeof cb === 'function') ? callback(error) : Promise.reject(error));
   };
@@ -102,4 +122,30 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false }) => {
     }
     return _update.call(Model, whereNotDeleted, ...rest);
   };
+
+  if (Model.settings.remoting && Model.settings.remoting.sharedMethods.deleteById !== false && (deletedById || deleteOp)) {
+    Model.disableRemoteMethodByName('deleteById');
+
+    Model.remoteMethod('deleteById', {
+      accessType: 'WRITE',
+      isStatic: false,
+      accepts: [
+        { arg: 'options', type: 'object', http: 'optionsFromRequest' }
+      ],
+      returns: {arg: 'data', type: 'object', root: true},
+      http: {verb: 'delete', path: '/'},
+    });
+
+    Model.prototype.deleteById = function(options = {}) {
+      if (deletedById) options.deletedById = options.accessToken ? options.accessToken.userId : null;
+      if (deleteOp && options.deletedById) options.deleteOp = 'user';
+      return this.destroy(options).then(function() {
+        return { count: 1 }
+      })
+    };
+  }
+};
+
+var genKey = function() {
+  return crypto.createHmac('sha256', Math.random().toString(12).substr(2)).digest('hex').substr(0, 8);
 };

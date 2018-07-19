@@ -1,6 +1,6 @@
 {
-  "name": "loopback-softdelete-mixin3",
-  "version": "0.0.12",
+  "name": "loopback-softdelete-mixin4",
+  "version": "1.0.8",
   "description": "A mixin to provide soft deletes by adding a deletedAt attribute for loopback Models",
   "main": "src/index.js",
   "scripts": {
@@ -20,12 +20,12 @@
     "delete"
   ],
   "author": {
-    "name": "Jouke Visser",
-    "email": "jouke@studio-mv.nl"
+    "name": "Joey Benenati",
+    "email": "joey@wedo.com"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/medicinisto/loopback-softdelete-mixin.git"
+    "url": "https://github.com/joeybenenati/loopback-softdelete-mixin.git"
   },
   "dependencies": {
     "babel-runtime": "^6.3.13",
